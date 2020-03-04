@@ -29,12 +29,13 @@ class ClothingDataset(object):
 
         num_objs = len(objects)
         boxes = []
+        #TODO add in check for files without xml
         for obj in objects:
-            bndbox = obj["bndbox"]
-            xmin = np.min(bndbox["xmin"])
-            xmax = np.max(bndbox["xmax"])
-            ymin = np.min(bndbox["ymin"])
-            ymax = np.max(bndbox["ymax"])
+            bndbox = obj.childNodes[9]
+            xmin = int(bndbox.childNodes[1].firstChild.data)
+            xmax = int(bndbox.childNodes[3].firstChild.data)
+            ymin = int(bndbox.childNodes[5].firstChild.data)
+            ymax = int(bndbox.childNodes[7].firstChild.data)
             boxes.append([xmin, ymin, xmax, ymax])
 
         # convert everything into a torch.Tensor
