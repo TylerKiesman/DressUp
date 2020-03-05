@@ -12,7 +12,15 @@ class ClothingDataset(object):
         self.transforms = transforms
         # load all image files, sorting them to
         # ensure that they are aligned
-        self.images = list(sorted(os.listdir(os.path.join(root, "Clothing_Data"))))
+        photo_files = list(filter(lambda x: ".xml" not in x, sorted(os.listdir(os.path.join(root, "Clothing_Data")))))
+        xml_files_wo_ext = list(filter(lambda x: ".xml" in x, sorted(os.listdir(os.path.join(root, "Clothing_Data")))))
+        xml_files_wo_ext = [file.replace(".xml", "") for file in xml_files_wo_ext]
+        labeled_photos = []
+        for photo in photo_files:
+            removed_type = re.sub(r'\..*', "", photo)
+            if removed_type in xml_files_wo_ext:
+                labeled_photos.append(photo)
+        self.images = labeled_photos
 
     def __getitem__(self, idx):
         # load images ad masks
@@ -32,10 +40,10 @@ class ClothingDataset(object):
         #TODO add in check for files without xml
         for obj in objects:
             bndbox = obj.childNodes[9]
-            xmin = int(bndbox.childNodes[1].firstChild.data)
-            xmax = int(bndbox.childNodes[3].firstChild.data)
-            ymin = int(bndbox.childNodes[5].firstChild.data)
-            ymax = int(bndbox.childNodes[7].firstChild.data)
+            xmin = torch.tensor(int(bndbox.childNodes[1].firstChild.data))
+            xmax = torch.tensor(int(bndbox.childNodes[3].firstChild.data))
+            ymin = torch.tensor(int(bndbox.childNodes[5].firstChild.data))
+            ymax = torch.tensor(int(bndbox.childNodes[7].firstChild.data))
             boxes.append([xmin, ymin, xmax, ymax])
 
         # convert everything into a torch.Tensor
