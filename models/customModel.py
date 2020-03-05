@@ -1,6 +1,13 @@
 import torchvision
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
+import models.detection.transforms as T
 
+def get_transform(train):
+    transforms = []
+    transforms.append(T.ToTensor())
+    if train:
+        transforms.append(T.RandomHorizontalFlip(0.5))
+    return T.Compose(transforms)
 
 def get_model_instance_segmentation(num_classes):
     # load an instance segmentation model pre-trained pre-trained on COCO
