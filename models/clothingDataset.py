@@ -1,10 +1,11 @@
 import os
-import numpy as np
 import torch
 import re
 from PIL import Image
 from xml.dom import minidom
 
+def clip(value, lower, upper):
+    return lower if value < lower else upper if value > upper else value
 
 class ClothingDataset(object):
     def __init__(self, root, transforms):
@@ -34,16 +35,17 @@ class ClothingDataset(object):
         xml_file = minidom.parse(xml_path)
 
         objects = xml_file.getElementsByTagName('object')
+        h = int(xml_file.getElementsByTagName('height')[0].firstChild.data)
+        w = int(xml_file.getElementsByTagName('width')[0].firstChild.data)
 
         num_objs = len(objects)
         boxes = []
-        #TODO add in check for files without xml
         for obj in objects:
             bndbox = obj.childNodes[9]
-            xmin = torch.tensor(int(bndbox.childNodes[1].firstChild.data))
-            xmax = torch.tensor(int(bndbox.childNodes[3].firstChild.data))
-            ymin = torch.tensor(int(bndbox.childNodes[5].firstChild.data))
-            ymax = torch.tensor(int(bndbox.childNodes[7].firstChild.data))
+            xmin = torch.tensor(clip(int(bndbox.childNodes[1].firstChild.data), 0, w))
+            ymin = torch.tensor(clip(int(bndbox.childNodes[3].firstChild.data), 0, h))
+            xmax = torch.tensor(clip(int(bndbox.childNodes[5].firstChild.data), 0, w))
+            ymax = torch.tensor(clip(int(bndbox.childNodes[7].firstChild.data), 0, h))
             boxes.append([xmin, ymin, xmax, ymax])
 
         # convert everything into a torch.Tensor

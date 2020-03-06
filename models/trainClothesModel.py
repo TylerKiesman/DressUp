@@ -1,8 +1,8 @@
 import torch, os
 from models.detection.engine import train_one_epoch, evaluate
-from models.clothingDataset import  ClothingDataset
+from models.clothingDataset import ClothingDataset
 from models.customModel import *
-import models.detection.utils as utils
+from models.detection import utils
 
 
 def main():
@@ -23,7 +23,7 @@ def main():
 
     # define training and validation data loaders
     data_loader = torch.utils.data.DataLoader(
-        dataset, batch_size=2, shuffle=True, num_workers=4,
+        dataset, batch_size=1, shuffle=True, num_workers=4,
         collate_fn=utils.collate_fn)
 
     data_loader_test = torch.utils.data.DataLoader(
@@ -38,11 +38,11 @@ def main():
 
     # construct an optimizer
     params = [p for p in model.parameters() if p.requires_grad]
-    optimizer = torch.optim.SGD(params, lr=0.005,
+    optimizer = torch.optim.SGD(params, lr=0.0005,
                                 momentum=0.9, weight_decay=0.0005)
     # and a learning rate scheduler
     lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer,
-                                                   step_size=3,
+                                                   step_size=2,
                                                    gamma=0.1)
 
     # let's train it for 10 epochs
