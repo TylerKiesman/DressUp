@@ -55,8 +55,8 @@ def main():
         lr_scheduler.step()
         # evaluate on the test dataset
         evaluate(model, data_loader_test, device=device)
-
-    print("That's it!")
+    torch.save(model, os.path.join(curDir, "model.pth"))
+    print("Done training.")
 
 
 if __name__ == '__main__':
