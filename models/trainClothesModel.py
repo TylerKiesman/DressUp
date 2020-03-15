@@ -3,6 +3,9 @@ from models.detection.engine import train_one_epoch, evaluate
 from models.clothingDataset import ClothingDataset
 from models.customModel import *
 from models.detection import utils
+from PIL import Image
+import torchvision.transforms as transforms
+from torch.autograd import Variable
 
 
 def main():
@@ -11,15 +14,17 @@ def main():
     curDir = os.path.dirname(os.path.realpath(__file__))
 
     # our dataset has two classes only - background and person
-    num_classes = 2
+    num_classes = 20
+    model = get_model_instance_segmentation(num_classes)
     # use our dataset and defined transformations
     dataset = ClothingDataset(curDir, get_transform(train=True))
     dataset_test = ClothingDataset(curDir, get_transform(train=False))
 
     # split the dataset in train and test set
     indices = torch.randperm(len(dataset)).tolist()
-    dataset = torch.utils.data.Subset(dataset, indices[:-50])
-    dataset_test = torch.utils.data.Subset(dataset_test, indices[-50:])
+    split = round(len(indices) / 2)
+    dataset = torch.utils.data.Subset(dataset, indices[:-split])
+    dataset_test = torch.utils.data.Subset(dataset_test, indices[-split:])
 
     # define training and validation data loaders
     data_loader = torch.utils.data.DataLoader(
@@ -30,23 +35,20 @@ def main():
         dataset_test, batch_size=1, shuffle=False, num_workers=4,
         collate_fn=utils.collate_fn)
 
-    # get the model using our helper function
-    model = get_model_instance_segmentation(num_classes)
-
     # move model to the right device
     model.to(device)
 
     # construct an optimizer
     params = [p for p in model.parameters() if p.requires_grad]
-    optimizer = torch.optim.SGD(params, lr=0.0005,
+    optimizer = torch.optim.SGD(params, lr=0.00005,
                                 momentum=0.9, weight_decay=0.0005)
     # and a learning rate scheduler
     lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer,
                                                    step_size=2,
                                                    gamma=0.1)
 
-    # let's train it for 10 epochs
-    num_epochs = 10
+    # let's train it for 5 epochs
+    num_epochs = 5
 
     for epoch in range(num_epochs):
         # train for one epoch, printing every 10 iterations
