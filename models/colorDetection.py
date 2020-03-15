@@ -1,22 +1,20 @@
 from sklearn.cluster import KMeans
-import matplotlib.pyplot as plt
-import argparse
+import numpy as np
 import cv2
 
-# construct the argument parser and parse the arguments
-# ap = argparse.ArgumentParser()
-# ap.add_argument("-i", "--image", required=True, help="Path to the image")
-# ap.add_argument("-c", "--clusters", required=True, type=int, help="# of clusters")
-# args = vars(ap.parse_args())
-# load the image and convert it from BGR to RGB so that
-# we can dispaly it with matplotlib
-image = cv2.imread("C:\\Users\\kiesm\\zalando\\jeans\\beanie-black-jeans.jpg")
-image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-# show our image
-plt.figure()
-plt.axis("off")
-plt.imshow(image)
-image = image.reshape((image.shape[0] * image.shape[1], 3))
-clt = KMeans(n_clusters=3)
-clt.fit(image)
-print(clt)
+"""
+Function that given a file path and coordinates for an object, will tell the color of it.
+x1, y1 is top left and x2, y2 is bottom right
+"""
+def findColor(imgPath, x1, y1, x2, y2):
+    image = cv2.imread(imgPath)
+    image = image[y1:y2, x1:x2]
+    image = image.reshape((image.shape[0] * image.shape[1], 3))
+    clt = KMeans(n_clusters=3)
+    clt.fit(image)
+    numLabels = np.arange(0, len(np.unique(clt.labels_)) + 1)
+    (hist, _) = np.histogram(clt.labels_, bins=numLabels)
+    # normalize the histogram, such that it sums to one
+    hist = hist.astype("float")
+    hist /= hist.sum()
+    return zip(hist, clt.cluster_centers_)
